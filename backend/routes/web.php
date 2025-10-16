@@ -6,6 +6,12 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ParkingController;
 use App\Http\Controllers\Api\FavoriteController;
 
+// Route CSRF si besoin pour Sanctum
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF cookie set']);
+});
+
+// Routes API
 Route::prefix('api')->group(function () {
 
     // Routes publiques (pas besoin d'authentification)
@@ -14,7 +20,7 @@ Route::prefix('api')->group(function () {
     Route::get('/check', [AuthController::class, 'check']);
 
     // Routes protégées (nécessitent l'authentification)
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['web', 'authenticate'])->group(function () {
 
         // PARKING
         Route::get('/parkings', [ParkingController::class, 'index']);

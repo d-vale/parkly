@@ -17,7 +17,7 @@ class ParkingController extends Controller
     public function index()
     {
         // Récupérer tous les parkings avec les relations nécessaires
-        $parkings = Parking::with(['owner', 'schedules', 'prices'])
+        $parkings = Parking::with(['owner', 'schedule', 'price'])
             ->get();
 
         return response()->json([
@@ -36,8 +36,8 @@ class ParkingController extends Controller
         // Récupérer le parking avec toutes ses relations
         $parking = Parking::with([
             'owner',
-            'schedules',
-            'prices',
+            'schedule',
+            'price',
             'floors.spots',
         ])->find($parking_id);
 
