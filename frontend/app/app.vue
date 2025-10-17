@@ -1,11 +1,9 @@
+<!-- frontend/app/app.vue -->
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <div>
-      <h1>Bienvenue sur Parkly</h1>
-    </div>
+    <NuxtPage />
   </div>
 </template>
 
-<script setup>
-</script>
+<script setup></script>
