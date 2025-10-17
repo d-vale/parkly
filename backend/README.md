@@ -142,13 +142,9 @@ Toutes les routes sont préfixées par `/api`
 - Retirer un parking des favoris
 - Paramètre : `parking_id` (ID du parking à retirer)
 
----
-
 ## 🔒 Middleware et authentification
 
 L'API utilise Laravel Sanctum pour l'authentification basée sur les sessions. Les cookies sont utilisés pour maintenir la session.
-
----
 
 ## 📊 Relations de données
 
@@ -158,8 +154,6 @@ L'API utilise Laravel Sanctum pour l'authentification basée sur les sessions. L
 - Un **Parking** appartient à un **Owner** (many-to-one)
 - Un **Parking** a plusieurs **Schedule** (one-to-many)
 - Un **Parking** a plusieurs **Price** (one-to-many)
-
----
 
 ## 📝 Notes importantes
 
