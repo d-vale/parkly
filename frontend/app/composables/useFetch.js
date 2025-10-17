@@ -1,39 +1,30 @@
 export const useApiFetch = () => {
     const apiUrl = 'http://localhost:8000'
 
-    // Récupérer le cookie CSRF avant les requêtes POST/PUT/DELETE
-    const getCsrfCookie = async () => {
-        await $fetch(`${apiUrl}/sanctum/csrf-cookie`, {
-            credentials: 'include'
-        })
-    }
-
     /**
      * Wrapper autour de $fetch pour simplifier les appels API
      * @param {string} endpoint - Le chemin de l'endpoint (ex: '/api/login')
      * @param {Object} options - Options de la requête
      * @param {string} options.method - Méthode HTTP (GET, POST, PUT, DELETE)
      * @param {Object} options.body - Corps de la requête pour POST/PUT
-     * @param {boolean} options.skipCsrf - Permet de skip la récupération du CSRF cookie
      * @returns {Promise} Réponse de l'API
      */
     const apiFetch = async (endpoint, options = {}) => {
         const {
             method = 'GET',
             body = null,
-            skipCsrf = false,
             ...otherOptions
         } = options
-
-        // Récupérer le CSRF cookie pour les méthodes qui modifient des données
-        if (!skipCsrf && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase())) {
-            await getCsrfCookie()
-        }
 
         try {
             const response = await $fetch(`${apiUrl}${endpoint}`, {
                 method,
                 credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    ...otherOptions.headers
+                },
                 body,
                 ...otherOptions
             })
@@ -54,7 +45,7 @@ export const useApiFetch = () => {
 
     // Méthodes raccourcies pour faciliter l'utilisation
     const get = (endpoint, options = {}) => {
-        return apiFetch(endpoint, { ...options, method: 'GET', skipCsrf: true })
+        return apiFetch(endpoint, { ...options, method: 'GET' })
     }
 
     const post = (endpoint, body = null, options = {}) => {
