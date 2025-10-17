@@ -1,83 +1,57 @@
-// frontend/composables/useAuth.js
 export const useAuth = () => {
+    // État réactif partagé de l'utilisateur
     const user = useState('user', () => null)
+    // Propriété calculée pour vérifier si l'utilisateur est authentifié
     const isAuthenticated = computed(() => !!user.value)
 
-    const apiUrl = 'http://localhost:8000'
-
-    // Récupérer le cookie CSRF
-    const getCsrfCookie = async () => {
-        await $fetch(`${apiUrl}/sanctum/csrf-cookie`, {
-            credentials: 'include'
-        })
-    }
+    // Utiliser le composable useFetch pour les appels API
+    const { get, post } = useApiFetch()
 
     // Inscription
     const register = async (credentials) => {
-        await getCsrfCookie()
+        const response = await post('/api/register', credentials)
 
-        const data = await $fetch(`${apiUrl}/api/register`, {
-            method: 'POST',
-            credentials: 'include',
-            body: credentials
-        })
-
-        if (data.success) {
-            user.value = data.user
+        if (response.success && response.data?.user) {
+            user.value = response.data.user
         }
 
-        return data
+        return response
     }
 
     // Connexion
     const login = async (credentials) => {
-        await getCsrfCookie()
+        const response = await post('/api/login', credentials)
 
-        const data = await $fetch(`${apiUrl}/api/login`, {
-            method: 'POST',
-            credentials: 'include',
-            body: credentials
-        })
-
-        if (data.success) {
-            user.value = data.user
+        if (response.success && response.data?.user) {
+            user.value = response.data.user
         }
 
-        return data
+        return response
     }
 
     // Déconnexion
     const logout = async () => {
-        await $fetch(`${apiUrl}/api/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        })
-
+        const response = await post('/api/logout')
         user.value = null
+        return response
     }
 
     // Vérifier l'authentification
     const checkAuth = async () => {
-        try {
-            const data = await $fetch(`${apiUrl}/api/check`, {
-                credentials: 'include'
-            })
+        const response = await get('/api/check')
 
-            if (data.authenticated && data.user) {
-                user.value = data.user
-            } else {
-                user.value = null
-            }
-        } catch (error) {
+        if (response.success && response.data?.authenticated && response.data?.user) {
+            user.value = response.data.user
+        } else {
             user.value = null
         }
+
+        return response
     }
 
     // Récupérer les parkings (test API protégée)
     const fetchParkings = async () => {
-        return await $fetch(`${apiUrl}/api/parkings`, {
-            credentials: 'include'
-        })
+        return await get('/api/parkings')
     }
 
     return {
