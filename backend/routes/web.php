@@ -6,11 +6,6 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ParkingController;
 use App\Http\Controllers\Api\FavoriteController;
 
-// Route CSRF si besoin pour Sanctum
-Route::get('/sanctum/csrf-cookie', function () {
-    return response()->json(['message' => 'CSRF cookie set']);
-});
-
 // Routes API
 Route::prefix('api')->group(function () {
 
