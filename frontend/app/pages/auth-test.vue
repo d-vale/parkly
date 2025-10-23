@@ -1,107 +1,144 @@
 <template>
-  <div class="auth-container">
-    <h1>Test d'Authentification - Parkly</h1>
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
+      Test d'Authentification - Parkly
+    </h1>
 
     <!-- Statut de connexion -->
     <div
-      class="status-box"
-      :class="isAuthenticated ? 'connected' : 'disconnected'"
+      class="p-6 rounded-lg mb-8 text-lg"
+      :class="
+        isAuthenticated
+          ? 'bg-green-100 border-2 border-green-500 text-green-800'
+          : 'bg-red-100 border-2 border-red-500 text-red-800'
+      "
     >
       <strong>Statut:</strong>
       {{ isAuthenticated ? "Connecté" : "Non connecté" }}
-      <div v-if="user" class="user-info">
-        <p><strong>Nom:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
+      <div v-if="user" class="mt-4 pt-4 border-t border-gray-300">
+        <p class="my-2"><strong>Nom:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p class="my-2"><strong>Email:</strong> {{ user.email }}</p>
       </div>
     </div>
 
     <!-- Formulaires d'authentification (si non connecté) -->
-    <div v-if="!isAuthenticated" class="forms-container">
+    <div v-if="!isAuthenticated" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
       <!-- Formulaire d'inscription -->
-      <div class="form-card">
-        <h2>Inscription</h2>
-        <form @submit.prevent="handleRegister">
+      <div class="bg-gray-50 p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-6">Inscription</h2>
+        <form @submit.prevent="handleRegister" class="space-y-4">
           <input
             v-model="registerForm.first_name"
             type="text"
             placeholder="Prénom"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <input
             v-model="registerForm.last_name"
             type="text"
             placeholder="Nom"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <input
             v-model="registerForm.email"
             type="email"
             placeholder="Email"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <input
             v-model="registerForm.password"
             type="password"
             placeholder="Mot de passe"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <input
             v-model="registerForm.password_confirmation"
             type="password"
             placeholder="Confirmer le mot de passe"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <button type="submit" :disabled="loading">
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full px-4 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
             {{ loading ? "Inscription..." : "S'inscrire" }}
           </button>
         </form>
       </div>
 
       <!-- Formulaire de connexion -->
-      <div class="form-card">
-        <h2>Connexion</h2>
-        <form @submit.prevent="handleLogin">
+      <div class="bg-gray-50 p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-6">Connexion</h2>
+        <form @submit.prevent="handleLogin" class="space-y-4">
           <input
             v-model="loginForm.email"
             type="email"
             placeholder="Email"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <input
             v-model="loginForm.password"
             type="password"
             placeholder="Mot de passe"
             required
+            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          <button type="submit" :disabled="loading">
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full px-4 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
             {{ loading ? "Connexion..." : "Se connecter" }}
           </button>
         </form>
-        <div class="test-credentials">
-          <p><strong>Comptes de test:</strong></p>
-          <p>admin@parkly.ch / admin123</p>
-          <p>jean.dupont@example.com / password</p>
+        <div class="mt-6 p-4 bg-blue-50 rounded-md text-sm">
+          <p class="font-semibold mb-2">Comptes de test:</p>
+          <p class="my-1">admin@parkly.ch / admin123</p>
+          <p class="my-1">jean.dupont@example.com / password</p>
         </div>
       </div>
     </div>
 
     <!-- Actions si connecté -->
-    <div v-else class="actions-container">
-      <button @click="handleLogout" class="btn-logout">Se déconnecter</button>
-      <button @click="testProtectedRoute" class="btn-test">
+    <div v-else class="flex flex-wrap gap-4 justify-center mb-8">
+      <button
+        @click="handleLogout"
+        class="px-6 py-3 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors"
+      >
+        Se déconnecter
+      </button>
+      <button
+        @click="testProtectedRoute"
+        class="px-6 py-3 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
+      >
         Tester l'API (Récupérer les parkings)
       </button>
     </div>
 
     <!-- Messages -->
-    <div v-if="message" class="message" :class="message.type">
+    <div
+      v-if="message"
+      class="p-4 rounded-md mb-4 text-center"
+      :class="
+        message.type === 'success'
+          ? 'bg-green-100 text-green-800 border border-green-200'
+          : 'bg-red-100 text-red-800 border border-red-200'
+      "
+    >
       {{ message.text }}
     </div>
 
     <!-- Résultats de l'API -->
-    <div v-if="apiResult" class="api-result">
-      <h3>Résultat de l'API:</h3>
-      <pre>{{ apiResult }}</pre>
+    <div v-if="apiResult" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+      <h3 class="text-xl font-semibold text-gray-700 mb-4">Résultat de l'API:</h3>
+      <pre class="bg-white p-4 rounded-md overflow-x-auto max-h-96 overflow-y-auto text-sm">{{ apiResult }}</pre>
     </div>
   </div>
 </template>
@@ -234,179 +271,3 @@ const testProtectedRoute = async () => {
   }
 };
 </script>
-
-<style scoped>
-.auth-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 2rem;
-}
-
-.status-box {
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  font-size: 1.1rem;
-}
-
-.status-box.connected {
-  background-color: #d4edda;
-  border: 2px solid #28a745;
-  color: #155724;
-}
-
-.status-box.disconnected {
-  background-color: #f8d7da;
-  border: 2px solid #dc3545;
-  color: #721c24;
-}
-
-.user-info {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.user-info p {
-  margin: 0.5rem 0;
-}
-
-.forms-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.form-card {
-  background: #f8f9fa;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-card h2 {
-  margin-top: 0;
-  color: #495057;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-input {
-  padding: 0.75rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-input:focus {
-  outline: none;
-  border-color: #007bff;
-}
-
-button {
-  padding: 0.75rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-button:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.test-credentials {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #e7f3ff;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.test-credentials p {
-  margin: 0.25rem 0;
-}
-
-.actions-container {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.btn-logout {
-  background-color: #dc3545;
-}
-
-.btn-logout:hover {
-  background-color: #c82333;
-}
-
-.btn-test {
-  background-color: #28a745;
-}
-
-.btn-test:hover {
-  background-color: #218838;
-}
-
-.message {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-.api-result {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.api-result h3 {
-  margin-top: 0;
-  color: #495057;
-}
-
-.api-result pre {
-  background: white;
-  padding: 1rem;
-  border-radius: 4px;
-  overflow-x: auto;
-  max-height: 400px;
-  overflow-y: auto;
-}
-</style>
