@@ -181,8 +181,9 @@ const handleRegister = async () => {
   message.value = null;
   apiResult.value = null;
 
-  try {
-    const result = await register(registerForm.value);
+  const result = await register(registerForm.value);
+  
+  if (result.success) {
     message.value = {
       text: "Inscription réussie! Vous êtes maintenant connecté.",
       type: "success",
@@ -195,14 +196,23 @@ const handleRegister = async () => {
       password: "",
       password_confirmation: "",
     };
-  } catch (error) {
+  } else {
+    // Afficher les erreurs de validation si elles existent
+    let errorMessage = result.error || "Erreur lors de l'inscription";
+    
+    // Si c'est une erreur de validation Laravel, formater les messages
+    if (result.data?.errors) {
+      const errors = Object.values(result.data.errors).flat();
+      errorMessage = errors.join(', ');
+    }
+    
     message.value = {
-      text: error?.data?.message || "Erreur lors de l'inscription",
+      text: errorMessage,
       type: "error",
     };
-  } finally {
-    loading.value = false;
   }
+  
+  loading.value = false;
 };
 
 const handleLogin = async () => {
@@ -210,21 +220,31 @@ const handleLogin = async () => {
   message.value = null;
   apiResult.value = null;
 
-  try {
-    const result = await login(loginForm.value);
+  const result = await login(loginForm.value);
+  
+  if (result.success) {
     message.value = {
       text: "Connexion réussie!",
       type: "success",
     };
     loginForm.value = { email: "", password: "" };
-  } catch (error) {
+  } else {
+    // Afficher les erreurs de validation si elles existent
+    let errorMessage = result.error || "Erreur lors de la connexion";
+    
+    // Si c'est une erreur de validation Laravel, formater les messages
+    if (result.data?.errors) {
+      const errors = Object.values(result.data.errors).flat();
+      errorMessage = errors.join(', ');
+    }
+    
     message.value = {
-      text: error?.data?.message || "Erreur lors de la connexion",
+      text: errorMessage,
       type: "error",
     };
-  } finally {
-    loading.value = false;
   }
+  
+  loading.value = false;
 };
 
 const handleLogout = async () => {
@@ -232,20 +252,21 @@ const handleLogout = async () => {
   message.value = null;
   apiResult.value = null;
 
-  try {
-    await logout();
+  const result = await logout();
+  
+  if (result.success) {
     message.value = {
       text: "Déconnexion réussie",
       type: "success",
     };
-  } catch (error) {
+  } else {
     message.value = {
-      text: "Erreur lors de la déconnexion",
+      text: result.error || "Erreur lors de la déconnexion",
       type: "error",
     };
-  } finally {
-    loading.value = false;
   }
+  
+  loading.value = false;
 };
 
 const testProtectedRoute = async () => {
@@ -253,21 +274,21 @@ const testProtectedRoute = async () => {
   message.value = null;
   apiResult.value = null;
 
-  try {
-    const result = await fetchParkings();
+  const result = await fetchParkings();
+  
+  if (result.success) {
     message.value = {
       text: "API accessible! Données récupérées avec succès.",
       type: "success",
     };
-    apiResult.value = result;
-  } catch (error) {
+    apiResult.value = result.data;
+  } else {
     message.value = {
-      text:
-        "Erreur: " + (error.data?.message || "Impossible d'accéder à l'API"),
+      text: result.error || "Impossible d'accéder à l'API",
       type: "error",
     };
-  } finally {
-    loading.value = false;
   }
+  
+  loading.value = false;
 };
 </script>

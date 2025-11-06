@@ -13,9 +13,15 @@ export const useAuth = () => {
 
         if (response.success && response.data?.user) {
             user.value = response.data.user
+            return { success: true, user: response.data.user }
         }
 
-        return response
+        // En cas d'erreur, retourner le message d'erreur
+        return { 
+            success: false, 
+            error: response.error || 'Erreur lors de l\'inscription',
+            data: response.data
+        }
     }
 
     // Connexion
@@ -24,9 +30,15 @@ export const useAuth = () => {
 
         if (response.success && response.data?.user) {
             user.value = response.data.user
+            return { success: true, user: response.data.user }
         }
 
-        return response
+        // En cas d'erreur, retourner le message d'erreur
+        return { 
+            success: false, 
+            error: response.error || 'Erreur lors de la connexion',
+            data: response.data
+        }
     }
 
     // Déconnexion
