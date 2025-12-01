@@ -30,12 +30,16 @@ Le projet est actuellement en développement actif, avec de nouvelles fonctionna
 
 ### Cloner le repository
 
+```bash
 git clone https://github.com/d-vale/parkly.git
 cd parkly
+```
 
 ### Démarrer avec Docker
 
+```bash
 docker compose up --build
+```
 
 
 ## 📄 Licence
