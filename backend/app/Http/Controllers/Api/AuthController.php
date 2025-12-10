@@ -12,6 +12,12 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
+     * GET /sanctum/csrf-cookie
+     * Initialise le cookie CSRF pour les requêtes authentifiées
+     * Cette route est gérée automatiquement par Sanctum
+     */
+
+    /**
      * POST /api/register
      * Inscription d'un nouvel utilisateur
      */
@@ -66,7 +72,9 @@ class AuthController extends Controller
         $user = Auth::user();
 
         // Régénère la session pour éviter les attaques de fixation de session
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         return response()->json([
             'success' => true,
@@ -88,8 +96,10 @@ class AuthController extends Controller
     {
         Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
             'success' => true,
