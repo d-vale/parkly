@@ -1,0 +1,23 @@
+# Claude Code files
+.claude/
+*.claude
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+.fleet/
+.nova/
+.zed/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
