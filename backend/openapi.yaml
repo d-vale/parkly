@@ -1,0 +1,1060 @@
+openapi: 3.0.3
+info:
+  title: Parkly API
+  description: |
+    API REST pour l'application Parkly - Gestion de parkings et places de stationnement.
+
+    ## Authentification
+    L'API utilise Laravel Sanctum pour l'authentification basée sur les sessions avec protection CSRF.
+
+    ### Flux d'authentification
+    1. **Obtenir le cookie CSRF** : `GET /sanctum/csrf-cookie`
+    2. **S'inscrire ou se connecter** : `POST /api/register` ou `POST /api/login`
+    3. **Utiliser les routes protégées** : Inclure le cookie de session et le token CSRF dans les headers
+
+    ### Headers requis
+    - `X-XSRF-TOKEN` : Token CSRF (obligatoire pour POST, PUT, PATCH, DELETE)
+    - `Accept: application/json` : Pour recevoir les réponses en JSON
+    - `Content-Type: application/json` : Pour envoyer du JSON
+
+  version: 1.0.0
+  contact:
+    name: Daniel Vale
+    email: vale.daniel@outlook.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Serveur de développement local
+  - url: https://api.parkly.ch
+    description: Serveur de production
+
+tags:
+  - name: Authentication
+    description: Endpoints d'authentification et gestion de session
+  - name: User
+    description: Gestion du profil utilisateur
+  - name: Parkings
+    description: Consultation des parkings et leurs informations
+  - name: Favorites
+    description: Gestion des parkings favoris de l'utilisateur
+
+paths:
+  /sanctum/csrf-cookie:
+    get:
+      tags:
+        - Authentication
+      summary: Initialiser le cookie CSRF
+      description: |
+        Endpoint Sanctum pour initialiser le cookie CSRF requis pour les requêtes authentifiées.
+        À appeler AVANT toute tentative de login/register.
+      responses:
+        '204':
+          description: Cookie CSRF initialisé avec succès
+          headers:
+            Set-Cookie:
+              description: Cookie XSRF-TOKEN
+              schema:
+                type: string
+                example: XSRF-TOKEN=eyJpdiI6...; Path=/; SameSite=lax
+
+  /api/register:
+    post:
+      tags:
+        - Authentication
+      summary: Inscription d'un nouvel utilisateur
+      description: Crée un nouveau compte utilisateur et connecte automatiquement l'utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+                - email
+                - password
+                - password_confirmation
+              properties:
+                first_name:
+                  type: string
+                  maxLength: 255
+                  example: Jean
+                  description: Prénom de l'utilisateur
+                last_name:
+                  type: string
+                  maxLength: 255
+                  example: Dupont
+                  description: Nom de famille de l'utilisateur
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  example: jean.dupont@example.com
+                  description: Adresse email unique
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123!
+                  description: Mot de passe (minimum 8 caractères)
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+                  description: Confirmation du mot de passe (doit correspondre)
+      responses:
+        '201':
+          description: Inscription réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Inscription réussie
+                  user:
+                    $ref: '#/components/schemas/UserBasic'
+        '422':
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur avec son email et mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jean.dupont@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Connexion réussie
+                  user:
+                    $ref: '#/components/schemas/UserBasic'
+        '422':
+          description: Identifiants incorrects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Les identifiants fournis sont incorrects.
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Les identifiants fournis sont incorrects."]
+
+  /api/check:
+    get:
+      tags:
+        - Authentication
+      summary: Vérifier le statut d'authentification
+      description: Vérifie si l'utilisateur est actuellement authentifié
+      responses:
+        '200':
+          description: Statut d'authentification
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    example: true
+                    description: true si l'utilisateur est authentifié, false sinon
+                  user:
+                    oneOf:
+                      - $ref: '#/components/schemas/User'
+                      - type: "null"
+                    description: Informations utilisateur si authentifié, null sinon
+
+  /api/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Déconnexion utilisateur
+      description: Déconnecte l'utilisateur et invalide sa session
+      security:
+        - sanctum: []
+      responses:
+        '200':
+          description: Déconnexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Déconnexion réussie
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user:
+    get:
+      tags:
+        - Authentication
+      summary: Récupérer l'utilisateur connecté
+      description: Retourne les informations de l'utilisateur actuellement authentifié
+      security:
+        - sanctum: []
+      responses:
+        '200':
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags:
+        - User
+      summary: Mettre à jour le profil utilisateur
+      description: Met à jour les informations du profil de l'utilisateur connecté
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Jean Martin
+                  description: Nom complet (optionnel)
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  example: jean.martin@example.com
+                  description: Nouvelle adresse email (optionnel, doit être unique)
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: NewSecurePass123!
+                  description: Nouveau mot de passe (optionnel)
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: NewSecurePass123!
+                  description: Confirmation du nouveau mot de passe (requis si password fourni)
+      responses:
+        '200':
+          description: Profil mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Profil mis à jour avec succès
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: Jean Martin
+                      email:
+                        type: string
+                        example: jean.martin@example.com
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Erreur de validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/parkings:
+    get:
+      tags:
+        - Parkings
+      summary: Liste de tous les parkings
+      description: Récupère la liste complète des parkings avec leurs informations de base
+      security:
+        - sanctum: []
+      responses:
+        '200':
+          description: Liste des parkings récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Parking'
+                  count:
+                    type: integer
+                    example: 15
+                    description: Nombre total de parkings
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/parkings/{parking_id}/infos:
+    get:
+      tags:
+        - Parkings
+      summary: Informations détaillées d'un parking
+      description: Récupère toutes les informations détaillées d'un parking spécifique, incluant statistiques d'occupation
+      security:
+        - sanctum: []
+      parameters:
+        - name: parking_id
+          in: path
+          required: true
+          description: ID du parking
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Informations du parking récupérées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      parking:
+                        $ref: '#/components/schemas/ParkingDetailed'
+                      statistics:
+                        type: object
+                        properties:
+                          total_spots:
+                            type: integer
+                            example: 250
+                            description: Nombre total de places
+                          available_spots:
+                            type: integer
+                            example: 67
+                            description: Nombre de places disponibles
+                          occupancy_rate:
+                            type: number
+                            format: float
+                            example: 73.2
+                            description: Taux d'occupation en pourcentage
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Parking non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Parking non trouvé
+
+  /api/parkings/{parking_id}/schema:
+    get:
+      tags:
+        - Parkings
+      summary: Schéma/plan du parking
+      description: Récupère le plan complet du parking avec tous les étages et places
+      security:
+        - sanctum: []
+      parameters:
+        - name: parking_id
+          in: path
+          required: true
+          description: ID du parking
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Schéma du parking récupéré avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      parking_id:
+                        type: integer
+                        example: 1
+                      parking_name:
+                        type: string
+                        example: Parking Central
+                      floors:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/FloorWithSpots'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Parking non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Parking non trouvé
+
+  /api/user/favorites:
+    get:
+      tags:
+        - Favorites
+      summary: Liste des parkings favoris
+      description: Récupère la liste des parkings marqués comme favoris par l'utilisateur connecté
+      security:
+        - sanctum: []
+      responses:
+        '200':
+          description: Liste des favoris récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FavoriteParking'
+                  count:
+                    type: integer
+                    example: 5
+                    description: Nombre de parkings favoris
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/favorites/{parking_id}:
+    post:
+      tags:
+        - Favorites
+      summary: Ajouter un parking aux favoris
+      description: Ajoute un parking à la liste des favoris de l'utilisateur
+      security:
+        - sanctum: []
+      parameters:
+        - name: parking_id
+          in: path
+          required: true
+          description: ID du parking à ajouter aux favoris
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '201':
+          description: Parking ajouté aux favoris avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Parking ajouté aux favoris avec succès
+                  data:
+                    type: object
+                    properties:
+                      parking_id:
+                        type: integer
+                        example: 1
+                      parking_name:
+                        type: string
+                        example: Parking Central
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Parking introuvable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Parking introuvable
+        '409':
+          description: Le parking est déjà dans les favoris
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Ce parking est déjà dans vos favoris
+
+    delete:
+      tags:
+        - Favorites
+      summary: Retirer un parking des favoris
+      description: Retire un parking de la liste des favoris de l'utilisateur
+      security:
+        - sanctum: []
+      parameters:
+        - name: parking_id
+          in: path
+          required: true
+          description: ID du parking à retirer des favoris
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Parking retiré des favoris avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Parking retiré des favoris avec succès
+                  data:
+                    type: object
+                    properties:
+                      parking_id:
+                        type: integer
+                        example: 1
+                      parking_name:
+                        type: string
+                        example: Parking Central
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Parking introuvable ou pas dans les favoris
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    oneOf:
+                      - example: Parking introuvable
+                      - example: Ce parking n'est pas dans vos favoris
+
+components:
+  securitySchemes:
+    sanctum:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+      description: |
+        Authentification Laravel Sanctum basée sur les sessions.
+        Nécessite le cookie CSRF (XSRF-TOKEN) dans le header X-XSRF-TOKEN pour les requêtes modifiant des données.
+
+  responses:
+    Unauthorized:
+      description: Non authentifié - Session invalide ou expirée
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthenticated.
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique de l'utilisateur
+        first_name:
+          type: string
+          example: Jean
+          description: Prénom de l'utilisateur
+        last_name:
+          type: string
+          example: Dupont
+          description: Nom de famille de l'utilisateur
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+          description: Adresse email
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2024-01-15T10:30:00.000000Z
+          description: Date de vérification de l'email
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-10T08:00:00.000000Z
+          description: Date de création du compte
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-20T14:30:00.000000Z
+          description: Date de dernière modification
+
+    UserBasic:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        first_name:
+          type: string
+          example: Jean
+        last_name:
+          type: string
+          example: Dupont
+        email:
+          type: string
+          format: email
+          example: jean.dupont@example.com
+
+    Owner:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique du propriétaire
+        company_name:
+          type: string
+          example: Parkings SA
+          description: Nom de la société propriétaire
+        phone:
+          type: string
+          example: "+41 22 123 45 67"
+          description: Numéro de téléphone
+        email:
+          type: string
+          format: email
+          example: contact@parkings-sa.ch
+          description: Email de contact
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique de l'horaire
+        schedule_type:
+          type: string
+          example: 24/7
+          description: Type d'horaire (ex 24/7, Heures de bureau, etc.)
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+
+    Price:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique du tarif
+        price:
+          type: number
+          format: decimal
+          example: 2.50
+          description: Prix en CHF (arrondi au 0.05)
+        minutes:
+          type: integer
+          example: 60
+          description: Durée en minutes
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+
+    Parking:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique du parking
+        name:
+          type: string
+          example: Parking Central
+          description: Nom du parking
+        owner_id:
+          type: integer
+          example: 1
+          description: ID du propriétaire
+        schedule_id:
+          type: integer
+          example: 1
+          description: ID de l'horaire
+        price_id:
+          type: integer
+          example: 1
+          description: ID du tarif
+        city:
+          type: string
+          example: Genève
+          description: Ville
+        postal_code:
+          type: integer
+          example: 1200
+          description: Code postal
+        address:
+          type: string
+          example: Rue du Marché 15
+          description: Adresse complète
+        type:
+          type: string
+          example: Couvert
+          description: Type de parking (Couvert, Extérieur, Souterrain, etc.)
+        owner:
+          $ref: '#/components/schemas/Owner'
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+        price:
+          $ref: '#/components/schemas/Price'
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+
+    ParkingDetailed:
+      allOf:
+        - $ref: '#/components/schemas/Parking'
+        - type: object
+          properties:
+            floors:
+              type: array
+              items:
+                $ref: '#/components/schemas/Floor'
+
+    Floor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique de l'étage
+        parking_id:
+          type: integer
+          example: 1
+          description: ID du parking auquel appartient l'étage
+        number:
+          type: integer
+          example: -1
+          description: Numéro de l'étage (négatif pour sous-sol)
+        level:
+          type: integer
+          example: -1
+          description: Niveau de l'étage
+        name:
+          type: string
+          example: Sous-sol -1
+          description: Nom de l'étage
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        spots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Spot'
+
+    FloorWithSpots:
+      type: object
+      properties:
+        floor_id:
+          type: integer
+          example: 1
+          description: ID de l'étage
+        level:
+          type: integer
+          example: -1
+          description: Niveau de l'étage
+        name:
+          type: string
+          example: Sous-sol -1
+          description: Nom de l'étage
+        spots:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotInSchema'
+
+    Spot:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID unique de la place
+        parking_id:
+          type: integer
+          example: 1
+          description: ID du parking
+        floor_id:
+          type: integer
+          example: 1
+          description: ID de l'étage
+        spot_number:
+          type: integer
+          example: 101
+          description: Numéro de la place
+        occupied:
+          type: boolean
+          example: false
+          description: Statut d'occupation (true = occupée, false = disponible)
+        is_available:
+          type: boolean
+          example: true
+          description: Disponibilité de la place
+        spot_type:
+          type: string
+          example: standard
+          nullable: true
+          description: Type de place (standard, handicapé, électrique, etc.)
+        position_x:
+          type: number
+          format: float
+          example: 150.5
+          nullable: true
+          description: Position X sur le plan (coordonnée)
+        position_y:
+          type: number
+          format: float
+          example: 200.0
+          nullable: true
+          description: Position Y sur le plan (coordonnée)
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00.000000Z
+
+    SpotInSchema:
+      type: object
+      properties:
+        spot_id:
+          type: integer
+          example: 1
+          description: ID de la place
+        spot_number:
+          type: integer
+          example: 101
+          description: Numéro de la place
+        is_available:
+          type: boolean
+          example: true
+          description: Disponibilité
+        spot_type:
+          type: string
+          example: standard
+          nullable: true
+          description: Type de place
+        position:
+          type: object
+          properties:
+            x:
+              type: number
+              format: float
+              example: 150.5
+              description: Position X
+            y:
+              type: number
+              format: float
+              example: 200.0
+              description: Position Y
+
+    FavoriteParking:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID du parking
+        name:
+          type: string
+          example: Parking Central
+          description: Nom du parking
+        city:
+          type: string
+          example: Genève
+          description: Ville
+        postal_code:
+          type: integer
+          example: 1200
+          description: Code postal
+        address:
+          type: string
+          example: Rue du Marché 15
+          description: Adresse
+        type:
+          type: string
+          example: Couvert
+          description: Type de parking
+        owner:
+          $ref: '#/components/schemas/Owner'
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+        price:
+          $ref: '#/components/schemas/Price'
+        available_spots_count:
+          type: integer
+          example: 67
+          description: Nombre de places disponibles
+        total_spots_count:
+          type: integer
+          example: 250
+          description: Nombre total de places
+        added_at:
+          type: string
+          format: date-time
+          example: 2024-01-15T10:00:00.000000Z
+          description: Date d'ajout aux favoris
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - The email has already been taken.
+            password:
+              - The password must be at least 8 characters.
