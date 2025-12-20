@@ -5,17 +5,23 @@ info:
     API REST pour l'application Parkly - Gestion de parkings et places de stationnement.
 
     ## Authentification
-    L'API utilise Laravel Sanctum pour l'authentification basée sur les sessions avec protection CSRF.
+    L'API utilise Laravel Sanctum pour l'authentification basée sur les sessions.
 
     ### Flux d'authentification
-    1. **Obtenir le cookie CSRF** : `GET /sanctum/csrf-cookie`
+    1. **Initialiser la session** : `GET /sanctum/csrf-cookie`
     2. **S'inscrire ou se connecter** : `POST /api/register` ou `POST /api/login`
-    3. **Utiliser les routes protégées** : Inclure le cookie de session et le token CSRF dans les headers
+    3. **Utiliser les routes protégées** : Le cookie de session est automatiquement envoyé
+
+    ### Sécurité
+    - **Session-based auth** : Authentification par cookies HttpOnly
+    - **CORS strict** : Seuls les domaines autorisés peuvent accéder à l'API
+    - **SameSite cookies** : Protection contre les attaques CSRF
+    - **Pas de CSRF Token requis** : Les routes API sont exemptées (session + CORS + SameSite suffisent)
 
     ### Headers requis
-    - `X-XSRF-TOKEN` : Token CSRF (obligatoire pour POST, PUT, PATCH, DELETE)
     - `Accept: application/json` : Pour recevoir les réponses en JSON
     - `Content-Type: application/json` : Pour envoyer du JSON
+    - `credentials: include` : Pour envoyer les cookies de session (côté client)
 
   version: 1.0.0
   contact:
@@ -46,19 +52,19 @@ paths:
     get:
       tags:
         - Authentication
-      summary: Initialiser le cookie CSRF
+      summary: Initialiser la session
       description: |
-        Endpoint Sanctum pour initialiser le cookie CSRF requis pour les requêtes authentifiées.
-        À appeler AVANT toute tentative de login/register.
+        Endpoint Sanctum pour initialiser la session et les cookies requis pour l'authentification.
+        À appeler AVANT toute tentative de login/register (typiquement au démarrage de l'application).
       responses:
         '204':
-          description: Cookie CSRF initialisé avec succès
+          description: Session initialisée avec succès
           headers:
             Set-Cookie:
-              description: Cookie XSRF-TOKEN
+              description: Cookies de session
               schema:
                 type: string
-                example: XSRF-TOKEN=eyJpdiI6...; Path=/; SameSite=lax
+                example: parkly-api-session=eyJpdiI6...; Path=/; HttpOnly; SameSite=lax
 
   /api/register:
     post:

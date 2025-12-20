@@ -16,7 +16,6 @@ class ParkingController extends Controller
      */
     public function index()
     {
-        // Récupérer tous les parkings avec les relations nécessaires
         $parkings = Parking::with(['owner', 'schedule', 'price'])
             ->get();
 

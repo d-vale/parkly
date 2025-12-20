@@ -12,10 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Enable stateful API (session-based authentication with Sanctum)
+        // Activer l'API avec session (authentification Sanctum)
         $middleware->statefulApi();
 
-        // Alias for custom middleware
+        // Exclure les routes API de la vérification CSRF
+        // (l'authentification par session + CORS + SameSite cookies suffisent pour les SPAs)
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
+
         $middleware->alias([
             'authenticate' => \App\Http\Middleware\Authenticate::class,
         ]);

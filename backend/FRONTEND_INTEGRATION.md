@@ -20,7 +20,10 @@ VITE_API_BASE_URL=http://localhost:8000/api
 
 ### Configuration CORS
 
-Le backend est configuré pour accepter les requêtes depuis `http://localhost:3000` par défaut.
+Le backend est configuré pour accepter les requêtes depuis :
+- `http://localhost:3000`
+- `http://0.0.0.0:3000`
+- `http://127.0.0.1:3000`
 
 **Important** : Toutes les requêtes doivent inclure `credentials: 'include'` pour envoyer les cookies de session.
 
@@ -33,23 +36,25 @@ Le backend est configuré pour accepter les requêtes depuis `http://localhost:3
 L'API utilise **l'authentification par session** avec **Laravel Sanctum** :
 
 - ✅ **Session-based** : Les cookies gèrent la session automatiquement
-- ✅ **CSRF Protection** : Protection contre les attaques CSRF
+- ✅ **CORS strict** : Seuls les domaines autorisés peuvent accéder à l'API
+- ✅ **SameSite cookies** : Protection contre les attaques CSRF
 - ✅ **HttpOnly Cookies** : Sécurité maximale (pas accessible en JavaScript)
 - ❌ **Pas de JWT/Bearer Token** : Pas besoin de gérer manuellement les tokens
+- ❌ **Pas de CSRF Token** : Les routes API sont exemptées (session + CORS + SameSite suffisent)
 
 ### Étapes d'authentification
 
-#### 1️⃣ Initialiser le cookie CSRF (une seule fois au démarrage)
+#### 1️⃣ Initialiser la session (une seule fois au démarrage)
 
 ```javascript
 // Au démarrage de l'application (dans App.jsx ou _app.js)
 useEffect(() => {
-  async function initCSRF() {
+  async function initSession() {
     await fetch('http://localhost:8000/sanctum/csrf-cookie', {
       credentials: 'include'
     });
   }
-  initCSRF();
+  initSession();
 }, []);
 ```
 
@@ -136,7 +141,7 @@ class ParklyAPI {
   }
 
   /**
-   * Initialise le cookie CSRF (à appeler une fois au démarrage)
+   * Initialise la session Sanctum (à appeler une fois au démarrage)
    */
   async init() {
     if (this.initialized) return;
@@ -147,7 +152,7 @@ class ParklyAPI {
       });
       this.initialized = true;
     } catch (error) {
-      console.error('Erreur initialisation CSRF:', error);
+      console.error('Erreur initialisation session:', error);
     }
   }
 
@@ -441,11 +446,11 @@ try {
 ## 🚀 Checklist d'intégration
 
 - [ ] Variables d'environnement configurées (`VITE_API_URL`)
-- [ ] Cookie CSRF initialisé au démarrage de l'app
+- [ ] Session initialisée au démarrage de l'app (`/sanctum/csrf-cookie`)
 - [ ] `credentials: 'include'` dans toutes les requêtes
 - [ ] Headers `Content-Type: application/json` et `Accept: application/json`
 - [ ] Gestion des erreurs (401, 422, etc.)
-- [ ] Système d'authentification global (Context/Provider)
+- [ ] Système d'authentification global (Context/Provider ou Composable)
 - [ ] Redirection des utilisateurs non authentifiés
 - [ ] Déconnexion automatique sur erreur 401
 
@@ -454,14 +459,16 @@ try {
 
 ### ✅ Ce qui est géré automatiquement
 
-- **CSRF Protection** : Token CSRF dans les cookies
 - **Session Security** : Régénération de session lors du login
 - **HttpOnly Cookies** : Cookies inaccessibles en JavaScript
+- **SameSite Cookies** : Protection contre les attaques CSRF (`lax`)
 - **Password Hashing** : Bcrypt avec 12 rounds
-- **CORS** : Uniquement `http://localhost:3000` autorisé
+- **CORS strict** : Uniquement les domaines configurés sont autorisés
+- **Sanctum Stateful Domains** : Validation de l'origine des requêtes
 
 ### ⚠️ Ce que vous devez faire
 
 - **HTTPS en production** : Activer `SESSION_SECURE_COOKIE=true`
 - **Validation côté frontend** : Ne jamais faire confiance au frontend seul
 - **Gestion des tokens sensibles** : Ne jamais stocker de données sensibles dans localStorage
+- **Variables d'environnement** : Adapter `SANCTUM_STATEFUL_DOMAINS` et CORS pour la production

@@ -12,12 +12,6 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * GET /sanctum/csrf-cookie
-     * Initialise le cookie CSRF pour les requêtes authentifiées
-     * Cette route est gérée automatiquement par Sanctum
-     */
-
-    /**
      * POST /api/register
      * Inscription d'un nouvel utilisateur
      */
