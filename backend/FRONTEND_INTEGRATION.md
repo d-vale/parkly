@@ -366,7 +366,6 @@ export function useAuth() {
 }
 ```
 
----
 
 ## 📡 Routes disponibles
 
@@ -392,7 +391,6 @@ export function useAuth() {
 | `POST` | `/api/user/favorites/{id}` | Ajouter un favori |
 | `DELETE` | `/api/user/favorites/{id}` | Retirer un favori |
 
----
 
 ## ⚠️ Gestion des erreurs
 
@@ -439,7 +437,6 @@ try {
 }
 ```
 
----
 
 ## 🚀 Checklist d'intégration
 
@@ -452,7 +449,6 @@ try {
 - [ ] Redirection des utilisateurs non authentifiés
 - [ ] Déconnexion automatique sur erreur 401
 
----
 
 ## 🛡️ Sécurité
 
@@ -469,15 +465,3 @@ try {
 - **HTTPS en production** : Activer `SESSION_SECURE_COOKIE=true`
 - **Validation côté frontend** : Ne jamais faire confiance au frontend seul
 - **Gestion des tokens sensibles** : Ne jamais stocker de données sensibles dans localStorage
-
----
-
-## 📞 Support
-
-En cas de problème :
-1. Vérifiez que le backend est bien lancé (`php artisan serve`)
-2. Vérifiez que le CSRF cookie est bien initialisé
-3. Vérifiez la console du navigateur pour les erreurs CORS
-4. Vérifiez que `credentials: 'include'` est présent dans toutes les requêtes
-
-Bonne intégration ! 🎉

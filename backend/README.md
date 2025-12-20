@@ -6,7 +6,6 @@ API RESTful construite avec Laravel 12.
 [![Laravel](https://img.shields.io/badge/Laravel-12.0-red)]()
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue)]()
 
----
 
 ## 📋 Table des matières
 
@@ -19,7 +18,6 @@ API RESTful construite avec Laravel 12.
 - [Structure du projet](#-structure-du-projet)
 - [Frontend Integration](#-frontend-integration)
 
----
 
 ## 🔧 Prérequis
 
@@ -28,7 +26,6 @@ API RESTful construite avec Laravel 12.
 - **SQLite** ou **MySQL**
 - **Node.js** >= 18 (pour Vite)
 
----
 
 ## 📦 Installation
 
@@ -78,7 +75,6 @@ composer dev
 # L'API sera disponible sur http://localhost:8000
 ```
 
----
 
 ## ⚙️ Configuration
 
@@ -103,7 +99,6 @@ FRONTEND_URL=http://localhost:3000
 SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1,127.0.0.1:3000
 ```
 
----
 
 ## 🚀 Utilisation
 
@@ -135,7 +130,6 @@ php artisan route:clear
 - **Health Check** : http://localhost:8000/
 - **Documentation** : Voir [FRONTEND_INTEGRATION.md](FRONTEND_INTEGRATION.md)
 
----
 
 ## 📡 API Documentation
 
@@ -211,7 +205,6 @@ curl http://localhost:8000/api/parkings \
   -b cookies.txt
 ```
 
----
 
 ## 🧪 Tests
 
@@ -254,7 +247,6 @@ php artisan test --coverage
 Tests: 20 passed (83 assertions)
 ```
 
----
 
 ## 📁 Structure du projet
 
@@ -302,7 +294,6 @@ backend/
 └── README.md                                   # Ce fichier
 ```
 
----
 
 ## 🔗 Frontend Integration
 
@@ -334,7 +325,6 @@ const response = await fetch('http://localhost:8000/api/login', {
 });
 ```
 
----
 
 ## 🛡️ Sécurité
 
@@ -355,7 +345,6 @@ const response = await fetch('http://localhost:8000/api/login', {
 - Mettre à jour régulièrement les dépendances
 - Utiliser des mots de passe forts (min 8 caractères)
 
----
 
 ## 🐛 Debugging
 
@@ -391,7 +380,6 @@ php artisan migrate:status
 php artisan migrate:refresh --path=database/migrations/0001_01_01_000002_create_jobs_table.php
 ```
 
----
 
 ## 📊 Base de données
 
@@ -439,7 +427,6 @@ favorites (pivot)
 └── timestamps
 ```
 
----
 
 ## 🤝 Contribution
 
@@ -459,10 +446,7 @@ favorites (pivot)
 - Tests requis pour les nouvelles features
 - Documentation des méthodes publiques
 
----
 
 ## 📜 License
 
 Ce projet est sous licence MIT.
-
----
