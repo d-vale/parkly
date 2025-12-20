@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SwaggerController;
 
 // Health check endpoint
 Route::get('/', function () {
@@ -11,3 +12,7 @@ Route::get('/', function () {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
+
+// Swagger Documentation Routes
+Route::get('/api/docs', [SwaggerController::class, 'docs'])->name('swagger.docs');
+Route::get('/api/openapi.yaml', [SwaggerController::class, 'yaml'])->name('swagger.yaml');
